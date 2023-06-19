@@ -178,13 +178,12 @@ def get_balance():
     
     
     url = f"https://m.dafabet.com/pt/api/plugins/module/route/balance/balances?authenticated=true&hash={response_hash}"
-    print(url)
+    
     response = requests.get(url, headers=headers, cookies=cookies)
 
     
     if response.status_code <= 300:
         balance_data = response.json()
-        print(balance_data)
         balance = balance_data.get('balance')
         currency = balance_data.get('currency')       
         
