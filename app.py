@@ -21,7 +21,7 @@ def authenticate(authorization):
         'password': authorization.get('password')
     }
 
-    tokenUser = authorization.get('token')
+    
     
     
     if (not authorization.get('validate') or not authorization.get('token')) or datetime.strptime(authorization.get('validate'), "%Y-%m-%dT%H:%M:%S") < datetime.now():
@@ -147,7 +147,9 @@ def sports():
          "error": response.status_code
     }   
          
-    return {}
+    return {
+        "sports": responseData
+    }
 
   
 @app.route("/api/v1/bot/check_bets/", methods=["POST"])
@@ -267,9 +269,89 @@ def bets():
             "error": response.status_code
         }    
     return {
-        
+        "bets": responseData
     }
-    
+
+@app.route("/api/v1/bot/allgames/", methods=["POST"])
+def allGames():
+
+    cookies = {
+        'mhlanguage': 'pt',
+        'gtm-currency': 'BRL',
+        'dafaUrl[mobileUrl]': 'https%3A%2F%2Fm.dafabet.com%2Fpt',
+        'dafaUrl[login]': 'https%3A%2F%2Fm.dafabet.com%2Fpt%2Flogin%3Fproduct%3Dsports-df',
+        'dafaUrl[logout]': 'https%3A%2F%2Fm.dafabet.com%2Fpt%2Flogout',
+        'dafaUrl[registration]': 'https%3A%2F%2Fwww.dafabet.com%2Fpt%2Fjoin%2Fsports-df%3Fregvia%3D26',
+        'dafaUrl[desktopUrl]': 'https%3A%2F%2Fwww.dafabet.com%2Fpt',
+        'visid_incap_2519778': 'boSm49ZeR5aBs3eQwdaLQ3V4tWQAAAAAQUIPAAAAAADTVXQdjbCjhVzNp+xvDqck',
+        'nlbi_2519778': 'OzizHbAHnmy5vO5DzdO2rAAAAAA5Rk326avoGORd7MjZyLhN',
+        'betslip_menu': 'single',
+        'user_accept_higher_odds': 'true',
+        'site_version': 'web',
+        'X_DEVICE_VIEW': 'desktop',
+        'visid_incap_2267509': 'Kaq2K6BuTIOOYpPfERqvBgF7tWQAAAAAQUIPAAAAAACmJ2qO50qsrqE3JAi/GlQJ',
+        'currency': 'BRL',
+        'PHPSESSID': '0rr54kemusacgkrhsahd5o94gr',
+        'wbcToken': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFmdGVyYmV0IiwicGxheWVySWQiOjIyNjQyMzEyLCJzZXNzaW9uVG9rZW4iOiJhMjFlZDYzMS0yODYzLTQ2NjUtODZkOC0xNWMwNjY2OWJhNDgiLCJpc3MiOiJ3ZWJjb21wb3NlciIsImF1ZCI6IndlYmNvbXBvc2VyIiwiZXhwIjoxNjg5NzAzMDczfQ.TynqWxZtL3lYtnHXAuA_VckHGDUJ6FdLDC4RZd8iRjY',
+        'gtm-username': 'afterbet',
+        'gtm-userid': '22642312',
+        'dafaUrl[cashierDeposit]': 'https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Fdeposit%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48',
+        'dafaUrl[cashierTransfer]': 'https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Ftransfer%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48',
+        'dafaUrl[cashierCashPoints]': 'https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Fcashpoints%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48',
+        'dafaUrl[cashierWithdrawal]': 'https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Fwithdrawal%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48',
+        'dafaUrl[cashier]': 'https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48',
+        'previous_username': 'afterbet',
+        'ADRUM': 's=1689622116906&r=https%3A%2F%2Fals.dafabet.com%2Fm%2Fpt%2Flive%2Fsport%2F240-FOOT%3F0',
+        '_session': 'WTAvblAvcno4eW5oRGdjV1Nib1lLOEVucGs2RExGcnJxMk95V3Y5cnRLWnVNeEkxdGN0OFRVbTZRYysra0ZwVy8vSm0zeHl4KzVRT1dKZUZMQVlySEpBamF5VU1ac1lZcTBWb254czJzSUxLcmdsUU8xUWFBUXhjb09Zc3FzNThNUHVpdkpDOCt0RkphVTltMEFjSktPcUZEZHJaS2VCNDUxdzhqUUNLTnJJMVVKMHVUKzlWbjBWalZvTXFlTVNiVHRBSlZnSWkrYnlZR3Rhc3dhY2Vxelcyd3ZCc0g1V1dNdmV5c1VNZnBTS2dtb3dlYUZFSjRCUzB6TjNDdmZyYWxTQ0t4b1BNNnBhaHc2dStvKzlyc3dnVlE3UW1DMFBlWHZKVGJHWnlTWnZNaTNOVElJTEZnWVRrSENOaElrOHlONDc4cmNmMURFSUN6SjBuaTVuU3ZSRlhiN1NXcGQ3Z2kvcVNQcXFjV1BiOTAyTVR3WHA0bVc4cEVuOW1vVFBSTHM4QWZCdTBWVjhneWhhN1BxcUNpcmQ1SjAxWTkxM3ZJYXljTHFzd3BBRnZ5YUdjREVadGNVTWRNck52WG1XSndqSy9GOEFwdUl0TEp1MHVJclYyMSttU0VmYW1zMU9udUVUMW5Gbkkra2VyUUFiM0ZZQnNLWGJUK09SbC9hemNwdkRSUGdmb2VTOVBKSkw4YzJrRDU1VHNBbDh4YmhmNjVwaEJrZndlOGZXcXUvNnF6elFHV0ErM0FHYW03SkI4bHRFeHF2OFFvOVdudHQ5TjZacEZ0bW5yZ1RqNVJPa1U4bmRJTWRTTXpoTklYektiOEprUXB4Z2RkYk5qOStjcVJIWFU3S2svRVJBTUVjZHQ1L2NmWDRkNW5MQWRWckVNWWhCaXVyayt6dGRWcFBBZFF2RHRDMk5NdXVueS9KU2R0bGg0RDNSeEQ0OGl1NTRSV0UwbDBMRTBWUkFZa25kSFU4a3E3UVdEQlJ1NkJZR2ExczJ5MzFTZzlJN0JjUnBkLS1JQXROTUk3RXdzWTFqbEJCd3ZqWTRnPT0%3D--75231f6e4205ec7f419f32d37d8b65e9aea388fb',
+        'incap_ses_1354_2519778': 'eyWmEPnRISwyVuobl2DKEmgmuGQAAAAABlTpWBVBULPKxFUT4mXUnA==',
+        'incap_ses_1354_2267509': 'NHbrQEdF1iAivOobl2DKEugmuGQAAAAANmHH+0/6hynXJE5rNPqdqQ==',
+        'nlbi_2519778_2147483392': 'dSOtRuUZMUu+6KEAzdO2rAAAAAArhR/Sh8ye6WMeuJUp67g0',
+        'reese84': '3:3U5wSpSffU7Nc7moA5fneQ==:oBX31Hy/uuFZUoXX5QE3F3z/okib1Ixd6nMaur2/o1fciHJP0p59COfloeCbYejztfA853c3bwdRR/OxkhExRVVFWvR+tsuekH524tCi+fdHzzNRREd8lH78SuSA6xTW1XDw+rAeZ2eYwWhpUD+e9QmVx4zosd8Z43Aauo/NsEHi8n/g2z/nnVFz953vUBq7dnNabEEYOMAcImVyfzFgQMzsvh6WK8t2Vs/B053HmEPlgFKtS/gB4u5I28XQqIlnHVQSgRvSOGGb+5QLIZZ+u4/qJ8IawvSJUBABKXKme3okEwZZ+6OfgXm3kTpzpnCJf7LDDoQqAc9LuyPufYyo06CTNZgsFw46TcqZxAC+uzOJaiqjAU3otsHX/joas5DJoteVzt3KFL08MOfjcnockGwMbWPEpca3UvpeYjsZ87ZQm8CubUduf17TqxlF3rEUu74WOjQcZjXNjdgCupNnYDnrfdkERguRnY7/PJojslk=:EIqTwHy3PlIodowNQ+IaNMW5qK+dubxDuOcATM7CZPY=',
+    }
+
+    headers = {
+        'authority': 'als.dafabet.com',
+        'accept': 'application/json',
+        'accept-language': 'pt-BR',
+        # 'cookie': 'mhlanguage=pt; gtm-currency=BRL; dafaUrl[mobileUrl]=https%3A%2F%2Fm.dafabet.com%2Fpt; dafaUrl[login]=https%3A%2F%2Fm.dafabet.com%2Fpt%2Flogin%3Fproduct%3Dsports-df; dafaUrl[logout]=https%3A%2F%2Fm.dafabet.com%2Fpt%2Flogout; dafaUrl[registration]=https%3A%2F%2Fwww.dafabet.com%2Fpt%2Fjoin%2Fsports-df%3Fregvia%3D26; dafaUrl[desktopUrl]=https%3A%2F%2Fwww.dafabet.com%2Fpt; visid_incap_2519778=boSm49ZeR5aBs3eQwdaLQ3V4tWQAAAAAQUIPAAAAAADTVXQdjbCjhVzNp+xvDqck; nlbi_2519778=OzizHbAHnmy5vO5DzdO2rAAAAAA5Rk326avoGORd7MjZyLhN; betslip_menu=single; user_accept_higher_odds=true; site_version=web; X_DEVICE_VIEW=desktop; visid_incap_2267509=Kaq2K6BuTIOOYpPfERqvBgF7tWQAAAAAQUIPAAAAAACmJ2qO50qsrqE3JAi/GlQJ; currency=BRL; PHPSESSID=0rr54kemusacgkrhsahd5o94gr; wbcToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFmdGVyYmV0IiwicGxheWVySWQiOjIyNjQyMzEyLCJzZXNzaW9uVG9rZW4iOiJhMjFlZDYzMS0yODYzLTQ2NjUtODZkOC0xNWMwNjY2OWJhNDgiLCJpc3MiOiJ3ZWJjb21wb3NlciIsImF1ZCI6IndlYmNvbXBvc2VyIiwiZXhwIjoxNjg5NzAzMDczfQ.TynqWxZtL3lYtnHXAuA_VckHGDUJ6FdLDC4RZd8iRjY; gtm-username=afterbet; gtm-userid=22642312; dafaUrl[cashierDeposit]=https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Fdeposit%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48; dafaUrl[cashierTransfer]=https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Ftransfer%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48; dafaUrl[cashierCashPoints]=https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Fcashpoints%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48; dafaUrl[cashierWithdrawal]=https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%2Falsports%2Ftransaction%2Fwithdrawal%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48; dafaUrl[cashier]=https%3A%2F%2Fpay.dafabet.com%2Fc%2Flatam%2Fpt%2Fpayment-options%2Fdeposit%3Fticket%3Da21ed631-2863-4665-86d8-15c06669ba48; previous_username=afterbet; ADRUM=s=1689622116906&r=https%3A%2F%2Fals.dafabet.com%2Fm%2Fpt%2Flive%2Fsport%2F240-FOOT%3F0; _session=WTAvblAvcno4eW5oRGdjV1Nib1lLOEVucGs2RExGcnJxMk95V3Y5cnRLWnVNeEkxdGN0OFRVbTZRYysra0ZwVy8vSm0zeHl4KzVRT1dKZUZMQVlySEpBamF5VU1ac1lZcTBWb254czJzSUxLcmdsUU8xUWFBUXhjb09Zc3FzNThNUHVpdkpDOCt0RkphVTltMEFjSktPcUZEZHJaS2VCNDUxdzhqUUNLTnJJMVVKMHVUKzlWbjBWalZvTXFlTVNiVHRBSlZnSWkrYnlZR3Rhc3dhY2Vxelcyd3ZCc0g1V1dNdmV5c1VNZnBTS2dtb3dlYUZFSjRCUzB6TjNDdmZyYWxTQ0t4b1BNNnBhaHc2dStvKzlyc3dnVlE3UW1DMFBlWHZKVGJHWnlTWnZNaTNOVElJTEZnWVRrSENOaElrOHlONDc4cmNmMURFSUN6SjBuaTVuU3ZSRlhiN1NXcGQ3Z2kvcVNQcXFjV1BiOTAyTVR3WHA0bVc4cEVuOW1vVFBSTHM4QWZCdTBWVjhneWhhN1BxcUNpcmQ1SjAxWTkxM3ZJYXljTHFzd3BBRnZ5YUdjREVadGNVTWRNck52WG1XSndqSy9GOEFwdUl0TEp1MHVJclYyMSttU0VmYW1zMU9udUVUMW5Gbkkra2VyUUFiM0ZZQnNLWGJUK09SbC9hemNwdkRSUGdmb2VTOVBKSkw4YzJrRDU1VHNBbDh4YmhmNjVwaEJrZndlOGZXcXUvNnF6elFHV0ErM0FHYW03SkI4bHRFeHF2OFFvOVdudHQ5TjZacEZ0bW5yZ1RqNVJPa1U4bmRJTWRTTXpoTklYektiOEprUXB4Z2RkYk5qOStjcVJIWFU3S2svRVJBTUVjZHQ1L2NmWDRkNW5MQWRWckVNWWhCaXVyayt6dGRWcFBBZFF2RHRDMk5NdXVueS9KU2R0bGg0RDNSeEQ0OGl1NTRSV0UwbDBMRTBWUkFZa25kSFU4a3E3UVdEQlJ1NkJZR2ExczJ5MzFTZzlJN0JjUnBkLS1JQXROTUk3RXdzWTFqbEJCd3ZqWTRnPT0%3D--75231f6e4205ec7f419f32d37d8b65e9aea388fb; incap_ses_1354_2519778=eyWmEPnRISwyVuobl2DKEmgmuGQAAAAABlTpWBVBULPKxFUT4mXUnA==; incap_ses_1354_2267509=NHbrQEdF1iAivOobl2DKEugmuGQAAAAANmHH+0/6hynXJE5rNPqdqQ==; nlbi_2519778_2147483392=dSOtRuUZMUu+6KEAzdO2rAAAAAArhR/Sh8ye6WMeuJUp67g0; reese84=3:3U5wSpSffU7Nc7moA5fneQ==:oBX31Hy/uuFZUoXX5QE3F3z/okib1Ixd6nMaur2/o1fciHJP0p59COfloeCbYejztfA853c3bwdRR/OxkhExRVVFWvR+tsuekH524tCi+fdHzzNRREd8lH78SuSA6xTW1XDw+rAeZ2eYwWhpUD+e9QmVx4zosd8Z43Aauo/NsEHi8n/g2z/nnVFz953vUBq7dnNabEEYOMAcImVyfzFgQMzsvh6WK8t2Vs/B053HmEPlgFKtS/gB4u5I28XQqIlnHVQSgRvSOGGb+5QLIZZ+u4/qJ8IawvSJUBABKXKme3okEwZZ+6OfgXm3kTpzpnCJf7LDDoQqAc9LuyPufYyo06CTNZgsFw46TcqZxAC+uzOJaiqjAU3otsHX/joas5DJoteVzt3KFL08MOfjcnockGwMbWPEpca3UvpeYjsZ87ZQm8CubUduf17TqxlF3rEUu74WOjQcZjXNjdgCupNnYDnrfdkERguRnY7/PJojslk=:EIqTwHy3PlIodowNQ+IaNMW5qK+dubxDuOcATM7CZPY=',
+        'referer': 'https://als.dafabet.com/proxy?master=www.dafabet.com?bv=169.1.1',
+        'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Brave";v="114"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'sec-gpc': '1',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'x-accept-language': 'pt-BR',
+        'x-lvs-hstoken': 'J6wlh8uDphieDzTTY6vsNNxO2YWAcCY-G0y5nmE2nfD6sbItrNyoKYiZ8tZTSgDnyYph5oJN7LfqU1vaS1owbkNbnG863PCqxsKNcYC0n5jIE_-9gfwZKv64pAB3nGUG',
+        'x-requested-with': 'XMLHttpRequest',
+        'x-sb-brand': 'DAFABET',
+        'x-sb-origin': 'WEB',
+        'x-sb-portalid': '22',
+    }
+
+    params = {
+        'periodType': 'PRE_MATCH',
+        'includeUnpricedMarkets': 'false',
+        'includeMarketTypes': 'false',
+        'lightWeightResponse': 'true',
+        'eventTypeFilter': 'GAMEEVENT,RANKEVENT',
+        'sportGroups': 'REGULAR',
+        'l': 'pt',
+    }
+
+    response = requests.get('https://als.dafabet.com/xapi/rest/eventpathtree', params=params, cookies=cookies, headers=headers)
+
+    if response.status_code <= 300:
+        responseData = response.json()
+
+    else: {
+        "error": response.status_code
+    }
+    return {
+        "allGames": responseData
+    }
     
 # @app.route("/api/v1/bot/start_bet/", methods=["POST"])
 # def start_bet():
