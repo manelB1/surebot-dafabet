@@ -8,10 +8,15 @@ from flask import Flask
 from flask import request
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+from playwright.sync_api import sync_playwright, Page
+from playwright_stealth import stealth_sync
 
 
 app = Flask(__name__)
 
+user_dir = '/tmp/playwright'
+if not os.path.exists(user_dir):
+    os.makedirs(user_dir)
 
 
 
@@ -353,36 +358,70 @@ def allGames():
         "allGames": responseData
     }
     
-# @app.route("/api/v1/bot/start_bet/", methods=["POST"])
-# def start_bet():
+@app.route("/api/v1/bot/check_game/", methods=["POST"])
+def start_bet():
     
-#     aposta = {
-#         'timea': 'TIME A', 
-#         'timeb': 'TIME B',
-#         'amount': 1000,
-#         'date': '2023-06-02 15:00',
-#         'event': '',
-#         'page_title': '',
-#     }
+    tip = json.loads(request.data)
+    print(tip)
+
+    success = False
+
     
 
-#     with sync_playwright() as p:
-#         browser = p.chromium.launch()
-#         page = browser.new_page()
+    with sync_playwright() as p:
+        data = {
+            "payout": None
+        }
+
+        home = tip.get('homeTeam')
+        away = tip.get('awayTeam')
+        stake = tip.get('stake')
+        market = tip.get('market')
+        market_type = tip.get('marketType')
+        point = tip.get('point')
         
-#         page.goto("https://betway.com/pt/sports")
+        game_url: str = tip.get('gameUrl')
         
-#         page.wait_for_timeout(3000)
+        browser = p.chromium.launch_persistent_context(user_dir, headless=False)
         
-#         page.goto("https://betway.com/pt/sports")
-        
-#         aposta['page_title'] = page.title()
-        
-#         page.wait_for_timeout(5000)
-        
-#         browser.close()
+        page: Page = browser.new_page()
+        stealth_sync(page)
+        page.goto(game_url)
+        page.set_default_timeout(60000)  # Define o tempo limite padrão para 60 segundos (60000 milissegundos)
+
+
+        page.wait_for_timeout(1000)
+
+        # page.locator("#mainbook_event_paths > div > div:nth-child(4) > div > div > h2 > div.collapse-button").click()
+
+         
+        if point is not None:
+            formatted_price_elements = page.locator('span.formatted_price.price').all()
     
-#     return aposta
+            for element in formatted_price_elements:
+                text = element.inner_text()
+                if text == str(point):
+                    element.click()
+                    
+        
+        inputValue = page.locator('input.stake')
+
+        
+        inputValue.click()
+        inputWin = inputValue 
+        inputWin.fill(stake)
+        
+        page.wait_for_timeout(6000)
+        title = page.title()
+
+        retorn = page.locator('#betslip > div > div > div.rollup-content.betslip-content > div:nth-child(3) > div > div:nth-child(2) > span.amount.total-betslip-returns.pull-right.text-info').inner_html()
+        
+        print(title)
+        
+        return {
+
+            "retorno": retorn
+        }
 
 
 @app.route("/api/v1/bot/balance/", methods=["POST"])
