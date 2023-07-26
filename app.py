@@ -5,7 +5,7 @@ import pytz
 from dateutil import parser
 import requests
 from flask import Flask
-from flask import request
+from flask import request, Response
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from playwright.sync_api import sync_playwright, Page
@@ -360,13 +360,10 @@ def allGames():
     
 @app.route("/api/v1/bot/check_game/", methods=["POST"])
 def start_bet():
-    
     tip = json.loads(request.data)
     print(tip)
 
     success = False
-
-    
 
     with sync_playwright() as p:
         data = {
@@ -375,26 +372,22 @@ def start_bet():
 
         home = tip.get('homeTeam')
         away = tip.get('awayTeam')
-        stake = tip.get('stake')
+        stake = float(tip.get('stake'))  
         market = tip.get('market')
         market_type = tip.get('marketType')
         point = tip.get('point')
         
         game_url: str = tip.get('gameUrl')
         
-        browser = p.chromium.launch_persistent_context(user_dir, headless=False)
+        browser = p.chromium.launch(headless=True)
         
         page: Page = browser.new_page()
         stealth_sync(page)
         page.goto(game_url)
-        page.set_default_timeout(60000)  # Define o tempo limite padrão para 60 segundos (60000 milissegundos)
-
+        page.set_default_timeout(60000)  
 
         page.wait_for_timeout(1000)
 
-        # page.locator("#mainbook_event_paths > div > div:nth-child(4) > div > div > h2 > div.collapse-button").click()
-
-         
         if point is not None:
             formatted_price_elements = page.locator('span.formatted_price.price').all()
     
@@ -403,25 +396,26 @@ def start_bet():
                 if text == str(point):
                     element.click()
                     
-        
         inputValue = page.locator('input.stake')
+        payout = page.locator('#betslip > div > div > div.rollup-content.betslip-content > section.betslip-selections > ul > li > div > h3 > ul > li.last.bet-input-container.text-md.border-btm-light > div.first > div > span > span')
+
+        inputValue.fill(str(stake))  
+        
+        payout_value = float(payout.inner_text())
+        data['payout'] = payout_calculate = round(payout_value * stake, 2)
+        
+
+        page.wait_for_timeout(3000)
 
         
-        inputValue.click()
-        inputWin = inputValue 
-        inputWin.fill(stake)
-        
-        page.wait_for_timeout(6000)
-        title = page.title()
+        # titleEvent = page.locator('#7099727 > div.event-header-description').inner_text()
 
-        retorn = page.locator('#betslip > div > div > div.rollup-content.betslip-content > div:nth-child(3) > div > div:nth-child(2) > span.amount.total-betslip-returns.pull-right.text-info').inner_html()
-        
-        print(title)
-        
-        return {
 
-            "retorno": retorn
-        }
+        
+
+        return Response(str(data["payout"]), status=200 if success else 400)
+
+
 
 
 @app.route("/api/v1/bot/balance/", methods=["POST"])
