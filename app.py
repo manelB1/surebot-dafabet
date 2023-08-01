@@ -367,7 +367,8 @@ def start_bet():
 
     with sync_playwright() as p:
         data = {
-            "payout": None
+            "payout": None,
+            "titleGame": None
         }
 
         home = tip.get('homeTeam')
@@ -379,7 +380,7 @@ def start_bet():
         
         game_url: str = tip.get('gameUrl')
         
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         
         page: Page = browser.new_page()
         stealth_sync(page)
@@ -390,11 +391,11 @@ def start_bet():
 
         if point is not None:
             formatted_price_elements = page.locator('span.formatted_price.price').all()
-    
             for element in formatted_price_elements:
                 text = element.inner_text()
-                if text == str(point):
+                if text == point:
                     element.click()
+                    
                     
         inputValue = page.locator('input.stake')
         payout = page.locator('#betslip > div > div > div.rollup-content.betslip-content > section.betslip-selections > ul > li > div > h3 > ul > li.last.bet-input-container.text-md.border-btm-light > div.first > div > span > span')
@@ -402,18 +403,23 @@ def start_bet():
         inputValue.fill(str(stake))  
         
         payout_value = float(payout.inner_text())
-        data['payout'] = payout_calculate = round(payout_value * stake, 2)
+        data['payout'] = round(payout_value * stake)
         
 
         page.wait_for_timeout(3000)
 
         
-        # titleEvent = page.locator('#7099727 > div.event-header-description').inner_text()
-
+        titleEvent = page.locator('.event-header-description').inner_text()
+        data['titleGame'] = titleEvent
 
         
+        if home in titleEvent or away in titleEvent:
+            success = True
+
+        print(data['titleGame'])
 
         return Response(str(data["payout"]), status=200 if success else 400)
+
 
 
 
