@@ -19,10 +19,10 @@ if not os.path.exists(user_dir):
     os.makedirs(user_dir)
 
 MARKETS = {
-    "HANDICAP": "Handicap Asiático - Tempo Regular ",
+    "HANDICAP": "Handicap Asiático",
     "TOTAL": "Match-bet and Totals -",
-    "MONEY": "Vitória/Empate/Vitória",
-    "HANDICAP_EURO": "Handicap Europeu - Tempo Regular ",
+    "MONEY": "Vitória/Empate/Vitória -",
+    "HANDICAP_EURO": "Handicap Europeu",
     "1x2": "Vitória/Empate/Vitória",
     "BOTH_TO_SCORE": "Vitória/Empate/Vitória",
     
@@ -100,7 +100,7 @@ def start_bet():
         game_url: str = tip.get('gameUrl')
         
         browser = p.chromium.launch(headless=False)
-        
+        market = MARKETS[market]
         page: Page = browser.new_page()
         stealth_sync(page)
         page.goto(game_url)
@@ -108,42 +108,42 @@ def start_bet():
 
         page.wait_for_timeout(1000)
 
-        page.locator('#market_group_all').click()
+        # page.locator('#market_group_all').click()
 
         if point is not None:
-            translated_market = MARKETS.get(market)
-            print(translated_market)
-            if translated_market:
+            if market:
                 titleMarkets = page.locator('.event_path-title.ellipsis').all()
                 for element in titleMarkets:
                     textTitle = element.inner_text()
-                    print(textTitle)
-                    if translated_market == textTitle:
-                        print("dsfdafddsf >>>>>>>>>")
-                        element.click()
+                    
+                    if market in textTitle:  
+                        if "collapsed" in element.get_attribute("class"):
+                            element.click()
+                            break
 
         formatted_price_elements = page.locator('span.formatted_price.price').all()
-                       
         for elementPrice in formatted_price_elements:
             textPrice = elementPrice.inner_text()
             if textPrice == point:
-                elementPrice.click()                
-                                
+                elementPrice.click()                                
 
-        page.wait_for_timeout(2000)    
+        page.wait_for_timeout(10000)    
+        
+        titleMarketsDiv = page.locator('.selection-market-period-description').inner_text()
+        
 
         inputValue = page.locator('input.stake')
         payout = page.locator('#betslip > div > div > div.rollup-content.betslip-content > section.betslip-selections > ul > li > div > h3 > ul > li.last.bet-input-container.text-md.border-btm-light > div.first > div > span > span')
 
         inputValue.fill(str(stake))  
-        
+            
         payout_value = float(payout.inner_text())
         data['payout'] = round(payout_value * stake)        
 
         page.wait_for_timeout(3000)
 
         titleEvent = page.locator('.event-header-description').inner_text()
-        
+            
         if home in titleEvent or away in titleEvent:
             success = True
 
