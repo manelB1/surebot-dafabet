@@ -20,13 +20,12 @@ if not os.path.exists(user_dir):
 
 MARKETS = {
     "HANDICAP": "Handicap Asiático",
-    "TOTAL": "Match-bet and Totals -",
-    "MONEY": "Vitória/Empate/Vitória -",
+    "TOTAL": "Match-bet and Totals",
+    "MONEY": "Vitória/Empate/Vitória",
     "HANDICAP_EURO": "Handicap Europeu",
     "1x2": "Vitória/Empate/Vitória",
     "BOTH_TO_SCORE": "Vitória/Empate/Vitória",
-    "DOUBLE_CHANCE_CORNERS": "Dupla Chance"
-    
+    "DOUBLE_CHANCE_CORNERS": "Dupla Chance"   
 }
 
 
@@ -110,7 +109,7 @@ def start_bet():
 
         page.wait_for_timeout(1000)
 
-        # page.locator('#market_group_all').click()
+        page.locator('#market_group_all').click()
 
         if point is not None:
             if market:
@@ -122,9 +121,16 @@ def start_bet():
                         if "collapsed" in element.get_attribute("class"):
                             element.click()
                             page.wait_for_timeout(1000) 
-                            
+                        else:
+                            pass
+        else: {
+            "error": True,
+            "Detail": "Não é possível continuar sem o valor do Point"
+        }
+            
         selector = f'.market-container[data-market-description="{market}"]'
-        parent_market_container = page.locator(selector)
+        parent_market_container = page.locator(selector).first
+        print(parent_market_container)
 
         if parent_market_container.is_visible():
             formatted_price_elements = parent_market_container.locator('span.formatted_price.price').all()
@@ -135,7 +141,10 @@ def start_bet():
                     elementPrice.click()
                     break                    
         
-        
+        else:{
+            "Error": True,
+            "Detail": "Não foi possível encontrar o Seletor"
+        }
                                     
                          
         page.wait_for_timeout(1000) 
