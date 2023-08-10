@@ -203,8 +203,9 @@ def start_bet():
                 success = True
 
             response_data = {
+                "sucess": success,
                 "error": not success,
-                "detail": "",
+                "detail": "Pronto para fazer aposta.",
                 "data": {
                     "Valor de Retorno": f'R${returnValue}'
                 }
@@ -219,6 +220,47 @@ def start_bet():
                 "error": True,
                 "detail": repr(e)
             }, 
+
+
+@app.route("/api/v1/bot/start_login/", methods=["POST"])
+def startLogin():
+    authorization = json.loads(request.data)
+    print(authorization)
+    with sync_playwright() as p:
+        
+            username = authorization.get('username')
+            password = authorization.get('password')
+            gameUrl = authorization.get('gameUrl')
+
+            browser = p.chromium.launch(headless=True)
+            page: Page = browser.new_page()
+            stealth_sync(page)
+            page.goto(gameUrl)
+            limite_tempo_carregamento = 60000
+            page.set_default_timeout(limite_tempo_carregamento)
+
+            try:
+                page.wait_for_timeout(limite_tempo_carregamento)
+
+            except Exception as e:
+                return {
+                    "error": True,
+                    "detail": "Problemas de conexão ou seletor não encontrado."
+                }    
+
+            page.locator('#LoginForm_username').fill(username)
+            page.wait_for_timeout(2000)
+            page.locator('#LoginForm_password').fill(password)
+            page.locator('#LoginForm_submit').click()
+            page.wait_for_timeout(2000)
+
+            pageTitle = page.title()
+
+            return{
+                "titulo":  pageTitle
+            }
+
+    
 
 
 @app.route("/api/v1/bot/create_game/", methods=["POST"])
