@@ -114,7 +114,6 @@ def start_bet():
                     titleMarkets = page.locator('.event_path-title.ellipsis').all()
                     for element in titleMarkets:
                         textTitle = element.inner_text()
-                        print(textTitle)
                         if market in textTitle:  
                             if "collapsed" in element.get_attribute("class"):
                                 element.nth(0)
