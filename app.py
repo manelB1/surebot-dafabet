@@ -28,6 +28,10 @@ MARKETS = {
     "DOUBLE_CHANCE_CORNERS": "Dupla Chance"   
 }
 
+MARKTYPE = {
+
+}
+
 
 def authenticate(authorization):
     data = {
@@ -103,12 +107,26 @@ def start_bet():
             page.goto(game_url)
             page.set_default_timeout(60000)  
 
-            
-    
             page.wait_for_timeout(1000)
 
-            # page.locator('#market_group_all').click()
+            if not point:
+                status_code=400
+                return {
+                    "error": True,
+                    "detail": "O campo 'point' não pode estar vazio.",
+                    "status": f'{status_code}'
+                }
+                
+            if not market:
+                status_code=400
+                return {
+                    "error": True,
+                    "detail": "O campo 'market' não pode estar vazio.",
+                    "status": f'{status_code}'
+                }
 
+            # page.locator('#market_group_all').click()
+            print(point)
             if point is not None:
                 if market is not None:
                     titleMarkets = page.locator('.event_path-title.ellipsis').all()
@@ -123,15 +141,18 @@ def start_bet():
                                  
                             else:
                                 pass
-                else:{
-                    "error": True,
-                    "detail": "Não foi possivel encontrar o mercado"
-                } 
+                else:
+                    return{
+                        "error": True,
+                        "detail": "Não foi possivel encontrar o mercado"
+                    } 
                                
-            else: {
-                "error": True,
-                "Detail": "Não é possível continuar sem o valor do Point"
-            }
+            else: 
+                return{
+                    "error": True,
+                    "Detail": "Não é possível continuar sem o valor do Point"
+                }
+            
                 
             selector = f'.market-container[data-market-description="{market}"]'
             parent_market_container = page.locator(selector).nth(0)
@@ -233,7 +254,7 @@ def createGame():
             page.set_default_timeout(60000)  
 
 
-            if game_url == None:{
+            if not game_url:{
                 "error": True,
                 "detail": "Precisa passar a url como parametro"
             }
