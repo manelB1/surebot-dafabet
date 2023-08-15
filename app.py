@@ -25,12 +25,10 @@ MARKETS = {
     "HANDICAP_EURO": "Handicap Europeu",
     "1x2": "Vitória/Empate/Vitória",
     "BOTH_TO_SCORE": "Vitória/Empate/Vitória",
-    "DOUBLE_CHANCE_CORNERS": "Dupla Chance"   
+    "DOUBLE_CHANCE_CORNERS": "Dupla Chance",
+    "DRAW_NO_BET": "Empate Anula"   
 }
 
-MARKTYPE = {
-
-}
 
 
 def authenticate(authorization):
@@ -103,8 +101,8 @@ def start_bet():
             browser = p.chromium.launch(headless=False)
             market = MARKETS[market]
             page: Page = browser.new_page()
-            stealth_sync(page)
             page.goto(game_url)
+            stealth_sync(page)
             page.set_default_timeout(60000)  
 
             page.wait_for_timeout(1000)
@@ -162,14 +160,20 @@ def start_bet():
                 formatted_price_elements = parent_market_container.locator('span.formatted_price.price').all()
                 for elementPrice in formatted_price_elements:
                     textPrice = elementPrice.inner_text()
-                    if textPrice == point:
+                    dataDescription = elementPrice.get_attribute("data-description")
+                    if textPrice == point and market_type in dataDescription:
                         parent_market_container.click() 
                         elementPrice.click()
                         break                    
             
+                else:
+                    return {
+                        "error": True,
+                        "detail": "Não foi possível encontrar a ODD correspondente ao valor e tipo de mercado"
+                    }
             else:{
                 "Error": True,
-                "Detail": "Não foi possível encontrar a ODD"
+                "Detail": "Não foi possível encontrar a ODD correspondente ao valor e tipo de mercado"
             }
                                                         
             page.wait_for_timeout(1000) 
@@ -183,6 +187,8 @@ def start_bet():
             
             payout_value = float(payout.inner_text())
             returnValue = round(payout_value * stake)
+            
+            # page.locator('.amount.total-betslip-returns.pull-right.text-info').inner_text()
 
             page.wait_for_timeout(3000)
 
@@ -196,6 +202,13 @@ def start_bet():
                 page.locator('#LoginForm_submit').click()
                 page.wait_for_timeout(2000)
 
+                # page.locator('.place_bet_button_message').click()
+                # aposta = page.locator('#betslip > div.stage.receipt-stage > div > div.rollup-content.bg-darker.visible-center.cluster.betslip-content > div.bet-confirmation-wrapper > h4').inner_text()
+                # print(aposta)
+                # value1 = page.locator('.text-light.u-pull-left').inner_text()
+                # value2 = page.locator('.pull-right.ellipsis.text-light.u-pull-right').inner_text()
+                # value3 = page.locator('.date.pull-right.ellipsis.text-light.u-pull-right').inner_text()
+
             page.wait_for_timeout(2000)
             titleEvent = page.locator('.event-header-description').inner_text()
                 
@@ -203,6 +216,7 @@ def start_bet():
                 success = True
 
             response_data = {
+                "message": "aposta",
                 "sucess": success,
                 "error": not success,
                 "detail": "Pronto para fazer aposta.",
@@ -228,37 +242,41 @@ def startLogin():
     print(authorization)
     with sync_playwright() as p:
         
-            username = authorization.get('username')
-            password = authorization.get('password')
-            gameUrl = authorization.get('gameUrl')
+        username = authorization.get('username')
+        password = authorization.get('password')
+        gameUrl = authorization.get('gameUrl')
 
-            browser = p.chromium.launch(headless=True)
-            page: Page = browser.new_page()
-            stealth_sync(page)
-            page.goto(gameUrl)
-            limite_tempo_carregamento = 60000
-            page.set_default_timeout(limite_tempo_carregamento)
+        browser = p.chromium.launch(headless=True)
+        page: Page = browser.new_page()
+        stealth_sync(page)
+        page.goto(gameUrl)
+        limite_tempo_carregamento = 60000
+        page.set_default_timeout(limite_tempo_carregamento)
 
-            try:
-                page.wait_for_timeout(limite_tempo_carregamento)
+        try:
+            page.wait_for_timeout(limite_tempo_carregamento)
 
-            except Exception as e:
-                return {
-                    "error": True,
-                    "detail": "Problemas de conexão ou seletor não encontrado."
-                }    
-
-            page.locator('#LoginForm_username').fill(username)
-            page.wait_for_timeout(2000)
-            page.locator('#LoginForm_password').fill(password)
-            page.locator('#LoginForm_submit').click()
-            page.wait_for_timeout(2000)
-
-            pageTitle = page.title()
-
+        except Exception as e:
             return{
-                "titulo":  pageTitle
-            }
+                    "error": True,
+                    "detail": f'Problemas de conexão ou seletor não encontrado. {e}'
+                }    
+        page.wait_for_timeout(2000)
+        page.locator('#LoginForm_username').fill(username)
+        page.wait_for_timeout(2000)
+        page.locator('#LoginForm_password').fill(password)
+        page.locator('#LoginForm_submit').click()
+        page.wait_for_timeout(2000)
+
+        sportsDetail = page.locator('#vip-tooltip').inner_text()
+        print(sportsDetail)
+
+        pageTitle = page.title()
+
+        return{
+                "titulo":  pageTitle,
+                "sportsDetail": sportsDetail
+            }    
 
     
 
